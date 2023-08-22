@@ -1,3 +1,4 @@
+import 'package:exam_appointments/screen/calendar_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../model/list_item.dart';
@@ -15,9 +16,9 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final List<Item> _items = [
-    Item(id: "0", name: "Exam 1", date: "12-04-2023", time: "12:00"),
-    Item(id: "1", name: "Exam 2", date: "13-04-2023", time: "12:00"),
-    Item(id: "2", name: "Exam 3", date: "14-04-2023", time: "12:00"),
+    Item(id: "0", name: "Exam 1", date: "25-08-2023", time: "12:00"),
+    Item(id: "1", name: "Exam 2", date: "27-08-2023", time: "12:00"),
+    Item(id: "2", name: "Exam 3", date: "30-08-2023", time: "12:00"),
   ];
 
   void _showModalForm(context) {
@@ -45,6 +46,17 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CalendarScreen(
+                            items: _items,
+                          )));
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(
               right: 20,
