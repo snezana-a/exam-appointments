@@ -1,9 +1,11 @@
 import 'package:exam_appointments/screen/calendar_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../model/list_item.dart';
 import '../widgets/item_card.dart';
 import '../widgets/new_item_form.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key, required this.title}) : super(key: key);
@@ -15,11 +17,54 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final List<Item> _items = [
-    Item(id: "0", name: "Exam 1", date: "25-08-2023", time: "12:00"),
-    Item(id: "1", name: "Exam 2", date: "27-08-2023", time: "12:00"),
-    Item(id: "2", name: "Exam 3", date: "30-08-2023", time: "12:00"),
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Item> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    try {
+      final userData = await _firestore.collection('users').doc(user.uid).get();
+      if (userData.exists) {
+        final userItems = userData.data()?['items'] as List<dynamic>;
+        _items = userItems.map((itemData) => Item.fromJson(itemData)).toList();
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
+  }
+
+  Future<void> saveItem(Item item) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return;
+      }
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final userData = await userDocRef.get();
+      if (userData.exists) {
+        final userItems = userData.data()?['items'] as List<dynamic>;
+
+        userItems.add(item.toJson());
+
+        await userDocRef.update({'items': userItems});
+      }
+    } catch (e) {
+      print('Error saving item: $e');
+    }
+  }
 
   void _showModalForm(context) {
     showModalBottomSheet(
@@ -35,6 +80,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _addItemToList(Item item) {
+    saveItem(item);
     setState(() {
       _items.add(item);
     });
