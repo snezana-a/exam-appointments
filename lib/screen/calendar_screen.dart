@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exam_appointments/model/list_item.dart';
+import 'package:exam_appointments/screen/map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
@@ -65,13 +66,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<Item> _convertFirestoreItems(List<dynamic> firestoreItems) {
     return firestoreItems.map((itemData) {
       DateTime parsedDate = DateTime.parse(itemData['date']);
+      GeoPoint location = itemData['location'] as GeoPoint;
 
       return Item(
-        name: itemData['name'],
-        time: TimeOfDay.fromDateTime(parsedDate),
-        date: parsedDate,
-        id: itemData['id'],
-      );
+          name: itemData['name'],
+          time: TimeOfDay.fromDateTime(parsedDate),
+          date: parsedDate,
+          id: itemData['id'],
+          location: location);
     }).toList();
   }
 
@@ -164,6 +166,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  void _showLocationOnMap(BuildContext context, GeoPoint location) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => MapScreen(location),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     print("Selected Day: $_selectedDay");
@@ -210,7 +220,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
             for (final event in selectedEvents)
               ListTile(
                 title: Text(event.name),
-                subtitle: Text('Time: ${event.time.format(context)}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Time: ${event.time.format(context)}'),
+                    GestureDetector(
+                      onTap: () {
+                        _showLocationOnMap(context, event.location);
+                      },
+                      child: Text(
+                        'Location: ${event.location.latitude}, ${event.location.longitude}',
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             const SizedBox(height: 10),
             ElevatedButton(

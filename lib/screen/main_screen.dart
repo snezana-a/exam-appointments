@@ -55,13 +55,14 @@ class _MainScreenState extends State<MainScreen> {
       final DateTime parsedTime = timeFormat.parse(timeString);
 
       final TimeOfDay itemTime = TimeOfDay.fromDateTime(parsedTime);
+      final GeoPoint location = itemData['location'] as GeoPoint;
 
       return Item(
-        id: itemData['id'],
-        name: itemData['name'],
-        date: itemDate,
-        time: itemTime,
-      );
+          id: itemData['id'],
+          name: itemData['name'],
+          date: itemDate,
+          time: itemTime,
+          location: location);
     }).toList();
   }
 
@@ -80,6 +81,8 @@ class _MainScreenState extends State<MainScreen> {
         final Map<String, dynamic> itemData = item.toJson();
         itemData['date'] = item.date.toIso8601String();
         itemData['time'] = item.time.format(context);
+        itemData['location'] =
+            GeoPoint(item.location.latitude, item.location.longitude);
 
         userItems.add(itemData);
 
