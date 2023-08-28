@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
 class Item {
   final String id;
   final String name;
-  final String date;
-  final String time;
+  final DateTime date;
+  final TimeOfDay time;
 
   Item({
     required this.id,
@@ -15,8 +17,8 @@ class Item {
     return Item(
       id: json['id'] as String,
       name: json['name'] as String,
-      date: json['date'] as String,
-      time: json['time'] as String,
+      date: json['date'],
+      time: json['time'],
     );
   }
 

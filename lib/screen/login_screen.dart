@@ -32,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   late String password;
   bool _showSpinner = false;
 
-  // Function to toggle the spinner.
   void _toggleSpinner(bool value) {
     setState(() {
       _showSpinner = value;

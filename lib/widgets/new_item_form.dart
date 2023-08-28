@@ -14,19 +14,19 @@ class NewItemForm extends StatefulWidget {
 
 class _NewItemFormState extends State<NewItemForm> {
   final _nameController = TextEditingController();
-  final _dateController = TextEditingController();
-  final _timeController = TextEditingController();
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   void _submitData() {
     if (_nameController.text.isEmpty ||
-        _dateController.text.isEmpty ||
-        _timeController.text.isEmpty) {
+        _selectedDate == null ||
+        _selectedTime == null) {
       return;
     }
 
     final String examName = _nameController.text;
-    final String examDate = _dateController.text;
-    final String examTime = _timeController.text;
+    final DateTime examDate = _selectedDate!;
+    final TimeOfDay examTime = _selectedTime!;
 
     final Item item =
         Item(id: nanoid(4), name: examName, date: examDate, time: examTime);
@@ -43,19 +43,20 @@ class _NewItemFormState extends State<NewItemForm> {
       lastDate: DateTime(2100),
     );
     if (date == null) return;
-    String formattedDate = DateFormat("dd/MM/yyyy").format(date);
-    _dateController.text = formattedDate.toString();
+    setState(() {
+      _selectedDate = date;
+    });
   }
 
   void _selectTime() async {
-    final time = await showTimePicker(
+    final TimeOfDay? time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (time == null) return;
-    String hour = time.hour.toString();
-    String minute = time.minute.toString();
-    _timeController.text = "$hour:$minute";
+    setState(() {
+      _selectedTime = time;
+    });
   }
 
   @override
@@ -70,18 +71,22 @@ class _NewItemFormState extends State<NewItemForm> {
             onSubmitted: (_) => _submitData,
           ),
           TextField(
-            controller: _dateController,
-            readOnly: true,
-            decoration: const InputDecoration(labelText: "Exam Date"),
-            onSubmitted: (_) => _submitData,
-            onTap: _selectDate,
-          ),
+              readOnly: true,
+              decoration: const InputDecoration(labelText: "Exam Date"),
+              onTap: _selectDate,
+              controller: TextEditingController(
+                text: _selectedDate != null
+                    ? DateFormat('dd-MM-yyyy').format(_selectedDate!)
+                    : '',
+              )),
           TextField(
-            controller: _timeController,
             readOnly: true,
             decoration: const InputDecoration(labelText: "Exam Time"),
-            onSubmitted: (_) => _submitData,
             onTap: _selectTime,
+            controller: TextEditingController(
+                text: _selectedTime != null
+                    ? '${_selectedTime!.hour}:${_selectedTime!.minute}'
+                    : ''),
           ),
           Container(
             padding: const EdgeInsets.only(top: 30),

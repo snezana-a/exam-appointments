@@ -1,6 +1,7 @@
 import 'package:exam_appointments/screen/calendar_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../model/list_item.dart';
 import '../widgets/item_card.dart';
@@ -37,12 +38,31 @@ class _MainScreenState extends State<MainScreen> {
       final userData = await _firestore.collection('users').doc(user.uid).get();
       if (userData.exists) {
         final userItems = userData.data()?['items'] as List<dynamic>;
-        _items = userItems.map((itemData) => Item.fromJson(itemData)).toList();
+        _items = _convertFirestoreItems(userItems);
         setState(() {});
       }
     } catch (e) {
       print('Error loading user data: $e');
     }
+  }
+
+  List<Item> _convertFirestoreItems(List<dynamic> firestoreItems) {
+    return firestoreItems.map((itemData) {
+      final DateTime itemDate = DateTime.parse(itemData['date']);
+      final String timeString = itemData['time'];
+
+      final DateFormat timeFormat = DateFormat('h:mm a');
+      final DateTime parsedTime = timeFormat.parse(timeString);
+
+      final TimeOfDay itemTime = TimeOfDay.fromDateTime(parsedTime);
+
+      return Item(
+        id: itemData['id'],
+        name: itemData['name'],
+        date: itemDate,
+        time: itemTime,
+      );
+    }).toList();
   }
 
   Future<void> saveItem(Item item) async {
@@ -57,7 +77,11 @@ class _MainScreenState extends State<MainScreen> {
       if (userData.exists) {
         final userItems = userData.data()?['items'] as List<dynamic>;
 
-        userItems.add(item.toJson());
+        final Map<String, dynamic> itemData = item.toJson();
+        itemData['date'] = item.date.toIso8601String();
+        itemData['time'] = item.time.format(context);
+
+        userItems.add(itemData);
 
         await userDocRef.update({'items': userItems});
       }
@@ -99,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => CalendarScreen(
-                            items: _items,
+                            userId: FirebaseAuth.instance.currentUser!.uid,
                           )));
             },
           ),
